@@ -4,6 +4,6 @@ import PORT_NAME from "./port_name.js";
 export default ({ dir = "." }) => ({
   id: "keyv",
   port: PORT_NAME,
-  load: () => ({ dir }), // load env
+  load: () => new DB(`${dir}/cache.db`), // load env
   link: (env) => (_) => adapter(env), // link adapter
 });

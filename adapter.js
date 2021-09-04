@@ -1,28 +1,31 @@
 import { DB } from './deps.js'
 
-export default ({ dir }) => {
-  const DBFILE = `${dir}/cache.db`
-  let stores = {}
-  const storeDb = new DB(DBFILE, 'stores')
-  storeDb.init()
-  // TODO: load all existing stores from stores db..
+const createTable = name => `
+CREATE TABLE IF NOT EXISTS stores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT,
+  value TEXT,
+  ttl INTEGER
+)
+`
+export default (db) => {
 
-  const createStore = async (name) => {
+  const createStore = (name) => {
     try {
-      stores.name = new DB(DBFILE, name)
-      stores.name.init()
-      await storeDb.set(name, true)
-      return ({ ok: true })
+      db.query(createTable(name))
+      return Promise.resolve(({ ok: true }))
     } catch (e) {
-      return ({ ok: false, status: 500, msg: 'Could not create database!' })
+      return Promise.reject({ ok: false, status: 500, msg: 'Could not create store!' })
     }
   }
 
-  const createDoc = async ({ store, key, value, ttl }) => {
-
-    const res = await stores[store].set(key, value)
-    console.log(res)
-    return ({ ok: true })
+  const createDoc = ({ store, key, value, ttl }) => {
+    try {
+      db.query(insertDoc(key, JSON.stringify(value), ttl))
+      return Promise.resolve({ ok: true })
+    } catch (e) {
+      return Promise.resolve({ ok: false, status: 400 })
+    }
   }
 
   const deleteDoc = async ({ store, key }) => {
