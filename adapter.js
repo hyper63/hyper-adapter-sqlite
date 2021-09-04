@@ -1,124 +1,38 @@
-// deno-lint-ignore-file no-unused-vars
+import { DB } from './deps.js'
 
-/**
- *
- * @typedef {Object} CreateDocumentArgs
- * @property {string} db
- * @property {string} id
- * @property {object} doc
- *
- * @typedef {Object} RetrieveDocumentArgs
- * @property {string} db
- * @property {string} id
- *
- * @typedef {Object} QueryDocumentsArgs
- * @property {string} db
- * @property {QueryArgs} query
- *
- * @typedef {Object} QueryArgs
- * @property {object} selector
- * @property {string[]} fields
- * @property {number} limit
- * @property {object[]} sort
- * @property {string} use_index
- *
- * @typedef {Object} IndexDocumentArgs
- * @property {string} db
- * @property {string} name
- * @property {string[]} fields
- *
- * @typedef {Object} ListDocumentArgs
- * @property {string} db
- * @property {number} limit
- * @property {string} startkey
- * @property {string} endkey
- * @property {string[]} keys
- *
- * @typedef {Object} BulkDocumentsArgs
- * @property {string} db
- * @property {object[]} docs
- *
- * @typedef {Object} Response
- * @property {boolean} ok
- */
+export default ({ dir }) => {
+  const DBFILE = `${dir}/cache.db`
+  let stores = {}
+  const storeDb = new DB(DBFILE, 'stores')
+  storeDb.init()
+  // TODO: load all existing stores from stores db..
 
-export default function (_env) {
-  /**
-   * @param {string} name
-   * @returns {Promise<Response>}
-   */
-  async function createDatabase(name) {}
+  const createStore = async (name) => {
+    try {
+      stores.name = new DB(DBFILE, name)
+      stores.name.init()
+      await storeDb.set(name, true)
+      return ({ ok: true })
+    } catch (e) {
+      return ({ ok: false, status: 500, msg: 'Could not create database!' })
+    }
+  }
 
-  /**
-   * @param {string} name
-   * @returns {Promise<Response>}
-   */
-  async function removeDatabase(name) {}
+  const createDoc = async ({ store, key, value, ttl }) => {
 
-  /**
-   * @param {CreateDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-  async function createDocument({ db, id, doc }) {}
+    const res = await stores[store].set(key, value)
+    console.log(res)
+    return ({ ok: true })
+  }
 
-  /**
-   * @param {RetrieveDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-  async function retrieveDocument({ db, id }) {}
+  const deleteDoc = async ({ store, key }) => {
+    //const res = await stores[store].del(key)
+    return ({ ok: true })
+  }
 
-  /**
-   * @param {CreateDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-  async function updateDocument({ db, id, doc }) {}
-
-  /**
-   * @param {RetrieveDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-  async function removeDocument({ db, id }) {}
-
-  /**
-   * @param {QueryDocumentsArgs}
-   * @returns {Promise<Response>}
-   */
-  async function queryDocuments({ db, query }) {}
-
-  /**
-   *
-   * @param {IndexDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-
-  async function indexDocuments({ db, name, fields }) {}
-
-  /**
-   *
-   * @param {ListDocumentArgs}
-   * @returns {Promise<Response>}
-   */
-  async function listDocuments(
-    { db, limit, startkey, endkey, keys, descending },
-  ) {}
-
-  /**
-   *
-   * @param {BulkDocumentsArgs}
-   * @returns {Promise<Response>}
-   */
-  async function bulkDocuments({ db, docs }) {}
-
-  return Object.freeze({
-    createDatabase,
-    removeDatabase,
-    createDocument,
-    retrieveDocument,
-    updateDocument,
-    removeDocument,
-    queryDocuments,
-    indexDocuments,
-    listDocuments,
-    bulkDocuments,
-  });
+  return {
+    createStore,
+    createDoc,
+    deleteDoc
+  }
 }
