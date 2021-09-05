@@ -104,3 +104,11 @@ test("list documents by pattern", async () => {
   await cache.deleteDoc({ store, key: "team-2" });
   await cache.deleteDoc({ store, key: "team-3" });
 });
+
+test("destroy cache", async () => {
+  const store = "test";
+  await cache.createStore(store);
+
+  const res = await cache.destroyStore(store)
+  assert(res.ok)
+})

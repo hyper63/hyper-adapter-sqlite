@@ -93,6 +93,21 @@ export default (db) => {
       });
     }
   };
+
+  const index = () => {
+    return Promise.reject({ ok: false, status: 501, msg: 'not implemented' })
+  }
+
+  const destroyStore = (name) => {
+    try {
+      const res = db.query(`drop table ${name}`)
+      console.log(res)
+      return Promise.resolve({ ok: true })
+    } catch (e) {
+      return Promise.reject({ ok: false })
+    }
+  }
+
   return {
     createStore,
     createDoc,
@@ -100,5 +115,7 @@ export default (db) => {
     getDoc,
     updateDoc,
     listDocs,
+    index,
+    destroyStore
   };
 };

@@ -5,7 +5,7 @@ import PORT_NAME from "../port_name.js";
 const hyperConfig = {
   app: appOpine,
   adapters: [
-    { port: PORT_NAME, plugins: [myAdapter()] },
+    { port: PORT_NAME, plugins: [myAdapter({ dir: '/tmp' })] },
   ],
 };
 
