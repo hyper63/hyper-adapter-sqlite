@@ -25,11 +25,16 @@ export default (db) => {
 
   const createDoc = ({ store, key, value, ttl }) => {
     try {
-      console.log("TODO: implement ttl", ttl);
+      //console.log("TODO: implement ttl", ttl);
+      const res = db.query(`select key from ${store} where key = ?`, [key])
+      if (res.length > 0) {
+        return Promise.reject({ ok: false, status: 409, msg: 'document conflict' })
+      }
       db.query(insertDoc(store), [key, JSON.stringify(value)]); //ttl
       return Promise.resolve({ ok: true });
     } catch (_e) {
-      return Promise.resolve({ ok: false, status: 409 });
+      console.log(_e)
+      return Promise.reject({ ok: false, status: 400 });
     }
   };
 
@@ -57,7 +62,10 @@ export default (db) => {
       const res = db.query(`select id, value from ${store} where key = ?`, [
         key,
       ]);
-      if (res.length === 0) throw new Error("not found");
+      if (res.length === 0) {
+        db.query(`insert into ${store} (key, value) values (?, ?)`, [key, JSON.stringify(value)])
+        return Promise.resolve({ ok: true })
+      };
       const [id] = res[0];
       const cur = JSON.parse(res[0][1]);
       value = { ...cur, ...value };
@@ -67,10 +75,11 @@ export default (db) => {
       );
       return Promise.resolve({ ok: true });
     } catch (_e) {
+      console.log(_e)
       return Promise.reject({
         ok: false,
-        status: 404,
-        msg: "document not found",
+        status: 400,
+        msg: _e.message,
       });
     }
   };
