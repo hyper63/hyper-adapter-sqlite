@@ -19,9 +19,10 @@
 
 ---
 
-Welcome to the sqlite hyper adapter for the cache port, a cache allows you to store
-key,value pairs where the key is a unique string and the value is a JSON document. Using
-this simple pattern, you can store highly accessible data for lighting fast reading.
+Welcome to the sqlite hyper adapter for the cache port, a cache allows you to
+store key,value pairs where the key is a unique string and the value is a JSON
+document. Using this simple pattern, you can store highly accessible data for
+lighting fast reading.
 
 Add the cache adapter to your hyper config
 
@@ -33,7 +34,7 @@ export default {
   adapter: [
     {
       port: "cache",
-      plugins: [sqlite({ dir: '/tmp' })],
+      plugins: [sqlite({ dir: "/tmp" })],
     },
   ],
 };

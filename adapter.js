@@ -3,11 +3,12 @@ CREATE TABLE IF NOT EXISTS ${name} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT,
   value TEXT,
-  ttl INTEGER
+  ttl INTEGER,
+  timestmp TEXT
 )
 `;
 const insertDoc = (table) => `
-insert into ${table} (key,value) values (?, ?)`;
+insert into ${table} (key,value,ttl,timestmp) values (?, ?, ?, ?)`;
 
 export default (db) => {
   const createStore = (name) => {
@@ -25,7 +26,6 @@ export default (db) => {
 
   const createDoc = ({ store, key, value, ttl }) => {
     try {
-      console.log("TODO: implement ttl", ttl);
       const res = db.query(`select key from ${store} where key = ?`, [key]);
       if (res.length > 0) {
         return Promise.reject({
@@ -34,7 +34,12 @@ export default (db) => {
           msg: "document conflict",
         });
       }
-      db.query(insertDoc(store), [key, JSON.stringify(value)]); //ttl
+      db.query(insertDoc(store), [
+        key,
+        JSON.stringify(value),
+        ttl || 0,
+        new Date().toISOString(),
+      ]); //ttl
       return Promise.resolve({ ok: true });
     } catch (_e) {
       console.log(_e);
@@ -50,7 +55,15 @@ export default (db) => {
 
   const getDoc = ({ store, key }) => {
     try {
-      const res = db.query(`select value from ${store} where key = ?`, [key]);
+      const res = db.query(`select value, id from ${store} where key = ?`, [
+        key,
+      ]);
+      // update timestmp
+      db.query(
+        `update ${store} set timestmp = ? where id = ?`,
+        new Date().toISOString(),
+        res[0][1],
+      );
       return Promise.resolve(JSON.parse(res[0][0]));
     } catch (_e) {
       return Promise.reject({
@@ -67,18 +80,23 @@ export default (db) => {
         key,
       ]);
       if (res.length === 0) {
-        db.query(`insert into ${store} (key, value) values (?, ?)`, [
-          key,
-          JSON.stringify(value),
-        ]);
+        db.query(
+          `insert into ${store} (key, value, ttl, timestmp) values (?, ?, ?, ?)`,
+          [
+            key,
+            JSON.stringify(value),
+            ttl || 0,
+            new Date().toISOString(),
+          ],
+        );
         return Promise.resolve({ ok: true });
       }
       const [id] = res[0];
       const cur = JSON.parse(res[0][1]);
       value = { ...cur, ...value };
       const _ = db.query(
-        `update ${store} set value = ?, ttl = ? where id = ?`,
-        [JSON.stringify(value), ttl, id],
+        `update ${store} set value = ?, ttl = ?, timestmp = ? where id = ?`,
+        [JSON.stringify(value), ttl, new Date().toISOString(), id],
       );
       return Promise.resolve({ ok: true });
     } catch (_e) {
