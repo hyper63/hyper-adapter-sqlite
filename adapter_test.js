@@ -68,8 +68,7 @@ test("update cache document not found", async () => {
     key: "6",
     value: { type: "movie", title: "The last start fighter", year: "1989" },
   }).catch((e) => e);
-  assert(!res.ok);
-  assertEquals(res.status, 404);
+  assert(res.ok);
 });
 
 test("list documents by pattern", async () => {
@@ -109,6 +108,6 @@ test("destroy cache", async () => {
   const store = "test";
   await cache.createStore(store);
 
-  const res = await cache.destroyStore(store)
-  assert(res.ok)
-})
+  const res = await cache.destroyStore(store);
+  assert(res.ok);
+});
