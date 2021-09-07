@@ -111,3 +111,42 @@ test("destroy cache", async () => {
   const res = await cache.destroyStore(store);
   assert(res.ok);
 });
+
+test("ttl feature expired", async () => {
+  // setup
+  const store = "test";
+  await cache.createStore(store);
+  await cache.createDoc({
+    store,
+    key: "item-8",
+    value: { name: "Temp Item" },
+    ttl: 1,
+  });
+  const team = await cache.getDoc({
+    store: "test",
+    key: "item-8",
+  }).catch((e) => e);
+  assertEquals(team.ok, false);
+  assertEquals(team.status, 404);
+  // clean up
+  await cache.deleteDoc({ store, key: "item-8" });
+});
+
+test("ttl feature not expired", async () => {
+  // setup
+  const store = "test";
+  await cache.createStore(store);
+  await cache.createDoc({
+    store,
+    key: "item-10",
+    value: { name: "Temp Item 2" },
+    ttl: 1000 * 60 * 60,
+  });
+  const team = await cache.getDoc({
+    store: "test",
+    key: "item-10",
+  });
+  assertEquals(team.name, "Temp Item 2");
+  // clean up
+  await cache.deleteDoc({ store, key: "item-10" });
+});
