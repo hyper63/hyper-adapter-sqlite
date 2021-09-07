@@ -1,3 +1,13 @@
+import { addMilliseconds, isAfter, parseISO, R } from "./deps.js";
+
+const {
+  compose,
+  evolve,
+  identity,
+  head,
+  zipObj,
+} = R;
+
 const createTable = (name) => `
 CREATE TABLE IF NOT EXISTS ${name} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,18 +63,44 @@ export default (db) => {
     return Promise.resolve({ ok: true });
   };
 
+  const xDoc = compose(
+    evolve({
+      id: identity,
+      key: identity,
+      value: (v) => JSON.parse(v),
+      ttl: identity,
+      timestmp: identity,
+    }),
+    zipObj(["id", "key", "value", "ttl", "timestmp"]),
+    head,
+  );
+
+  const expired = (ttl, timestmp) => {
+    const stop = addMilliseconds(parseISO(timestmp), ttl);
+    return isAfter(new Date(), stop);
+  };
+
   const getDoc = ({ store, key }) => {
     try {
-      const res = db.query(`select value, id from ${store} where key = ?`, [
-        key,
-      ]);
+      const res = db.query(
+        `select id, key, value, ttl, timestmp from ${store} where key = ?`,
+        [
+          key,
+        ],
+      );
+      const doc = xDoc(res);
+      if (doc.ttl > 0 && expired(doc.ttl, doc.timestmp)) {
+        db.query(`delete from ${store} where id = ?`, [doc.id]);
+        return Promise.reject({ ok: false, status: 404, msg: "ttl expired!" });
+      }
       // update timestmp
       db.query(
         `update ${store} set timestmp = ? where id = ?`,
         new Date().toISOString(),
-        res[0][1],
+        doc.id,
       );
-      return Promise.resolve(JSON.parse(res[0][0]));
+
+      return Promise.resolve(doc.value);
     } catch (_e) {
       return Promise.reject({
         ok: false,
