@@ -1,4 +1,4 @@
-<h1 align="center">hyper-adapter-keyv</h1>
+<h1 align="center">hyper-adapter-sqlite</h1>
 <p align="center">A cache adapter for hyper</p>
 <p align="center">
   <a href="https://nest.land/package/hyper-adapter-sqlite"><img src="https://nest.land/badge.svg" alt="Nest Badge" /></a>
