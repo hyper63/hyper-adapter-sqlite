@@ -7,13 +7,15 @@ export default (config) => ({
   port: PORT_NAME,
   load: () => {
     const dir = config.dir || ".";
-    let db = new DB(`${dir}/cache.db`);
+    const db = new DB(`${dir}/cache.db`);
 
-    window.addEventListener("unload", () => {
+    addEventListener("unload", () => {
       if (db) {
         try {
           db.close(true);
-        } catch (e) { console.log(e) }
+        } catch (e) {
+          console.log(e);
+        }
       }
     });
 
@@ -21,5 +23,3 @@ export default (config) => ({
   },
   link: (env) => (_) => adapter(env), // link adapter
 });
-
-
