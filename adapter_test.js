@@ -6,7 +6,7 @@ const cache = adapter(new DB(`./test.db`));
 const test = Deno.test;
 
 test("should escape/quote special characters", async () => {
-  const res = await cache.createStore("test-special-default-characters");
+  const res = await cache.createStore("test-special_default~characters");
   assert(res.ok);
 });
 
