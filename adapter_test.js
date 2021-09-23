@@ -5,6 +5,11 @@ import { assert, assertEquals } from "./dev_deps.js";
 const cache = adapter(new DB(`./test.db`));
 const test = Deno.test;
 
+test("should escape/quote special characters", async () => {
+  const res = await cache.createStore("test-special_default~characters");
+  assert(res.ok);
+});
+
 test("create cache doc", async () => {
   await cache.createStore("test");
   const res = await cache.createDoc({
