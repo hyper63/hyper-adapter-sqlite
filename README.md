@@ -63,7 +63,7 @@ export { default as sqlite } from "https://x.nest.land/hyper-adapter-sqlite/mod.
 
 ## Methods
 
-This adapter fully implements the Search port and can be used as the
+This adapter fully implements the Cache port and can be used as the
 [hyper Cache service](https://docs.hyper.io/cache-api) adapter
 
 See the full port [here](https://nest.land/package/hyper-port-cache)
