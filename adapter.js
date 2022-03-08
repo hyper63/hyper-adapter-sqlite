@@ -28,7 +28,7 @@ export default (db) => {
   const createStore = (name) => {
     try {
       db.query(createTable(name));
-      return Promise.resolve(({ ok: true }));
+      return Promise.resolve({ ok: true });
     } catch (_e) {
       return Promise.reject({
         ok: false,

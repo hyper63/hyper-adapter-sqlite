@@ -1,9 +1,17 @@
 import { DB } from "./deps.js";
 import adapter from "./adapter.js";
-import { assert, assertEquals } from "./dev_deps.js";
+import {
+  assert,
+  assertEquals,
+  validateCacheAdapterSchema,
+} from "./dev_deps.js";
 
 const cache = adapter(new DB(`./test.db`));
 const test = Deno.test;
+
+test("should implement the port", () => {
+  assert(validateCacheAdapterSchema(cache));
+});
 
 test("should escape/quote special characters", async () => {
   const res = await cache.createStore("test-special_default~characters");
