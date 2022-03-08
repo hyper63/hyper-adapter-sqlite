@@ -1,9 +1,17 @@
 import { DB } from "./deps.js";
 import adapter from "./adapter.js";
-import { assert, assertEquals } from "./dev_deps.js";
+import {
+  assert,
+  assertEquals,
+  validateCacheAdapterSchema,
+} from "./dev_deps.js";
 
 const cache = adapter(new DB(`./test.db`));
 const test = Deno.test;
+
+test("should implement the port", () => {
+  assert(validateCacheAdapterSchema(cache));
+});
 
 test("should escape/quote special characters", async () => {
   const res = await cache.createStore("test-special_default~characters");
@@ -36,7 +44,7 @@ test("get cache document", async () => {
 
 test("get cache document not found", async () => {
   await cache.createStore("test");
-  const res = await cache.getDoc({ store: "test", key: "3" }).catch((e) => e);
+  const res = await cache.getDoc({ store: "test", key: "3" });
   assert(!res.ok);
   assertEquals(res.status, 404);
   await cache.deleteDoc({ store: "test", key: "3" });
@@ -66,13 +74,13 @@ test("update cache document", async () => {
   });
 });
 
-test("update cache document not found", async () => {
+test("update cache document not found should upsert", async () => {
   await cache.createStore("test");
   const res = await cache.updateDoc({
     store: "test",
     key: "6",
     value: { type: "movie", title: "The last start fighter", year: "1989" },
-  }).catch((e) => e);
+  });
   assert(res.ok);
 });
 
@@ -130,7 +138,7 @@ test("ttl feature expired", async () => {
   const team = await cache.getDoc({
     store: "test",
     key: "item-8",
-  }).catch((e) => e);
+  });
   assertEquals(team.ok, false);
   assertEquals(team.status, 404);
   // clean up
