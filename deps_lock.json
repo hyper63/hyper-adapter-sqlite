@@ -1,4 +1,6 @@
 {
+  "https://arweave.net/afjNOdumqZhfVMIjRw_8fCYZoecSB6XtHGZpNNUNIr8/hyper-err.js": "434ce4bd1cc58e220aad95148bfb04ad7c43738cb5f771a02a45ea8608ac71cc",
+  "https://cdn.skypack.dev/-/crocks@v0.12.4-Mje8nEhNx2rmIpwz3ROp/dist=es2019,mode=imports/optimized/crocks.js": "93d587d18dc5f124f30e5b38de37a6471eb65309c94ef2ffc7a36dc40ab394da",
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/common/_Set-d915dfa1.js": "85edd0c60ae74c28bfd7a6d831d1274b2299de6c46cc19ddfed24f593365f0c8",
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/common/_arity-fefc01f2.js": "dd07d98af13cc6d84a8fc656ae901b590bbeebfcdff21a1eb9903f3d22a1dbc9",
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/common/_assertPromise-2ee5312b.js": "19db5ea49669f56d34c8e3b33b23e656a9eab5f0aa4f3c5c4607c1559f868d04",
@@ -299,6 +301,7 @@
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/ramda/es/zip.js": "a9d0dbfcc448f5d12a4dd996741474376421b0fac801ea5816cd532770674e89",
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/ramda/es/zipObj.js": "9f6b44228886fd55ef22807893681174f066b9c9672b4eaca643d3cfb393c5e9",
   "https://cdn.skypack.dev/-/ramda@v0.28.0-vDL6KbwpPkq7DJAM324O/dist=es2019,mode=imports/optimized/ramda/es/zipWith.js": "51d7e74be0dec2929186dd9b46802c836d5aa9b7a3f1e7b0f42bae3dac739345",
+  "https://cdn.skypack.dev/crocks@0.12.4": "fc624b776247aa182539fed6fe1b21a578609d1c2c0e31830c4469f2bcd099cd",
   "https://cdn.skypack.dev/ramda@0.28.0": "ac1e3c64a2a3491971bee55f88faeb0923023e903d3ad125f1bd8044b4cad03e",
   "https://deno.land/x/date_fns@v2.22.1/_lib/requiredArgs/index.ts": "4be7299a12120b86d47cf33ff59c8433be40cdc010c411444e1a118de4a2212e",
   "https://deno.land/x/date_fns@v2.22.1/_lib/toInteger/index.ts": "cba0112f6f9d9c8a13e00de7cc3991363a8a45d0798aa18eef25e8bbadf2e246",
