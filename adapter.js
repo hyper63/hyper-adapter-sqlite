@@ -33,6 +33,16 @@ const handleHyperErr = ifElse(
   Async.Rejected,
 );
 
+const mapCacheDne = ifElse(
+  (e) => includes("no such table", e.message),
+  always(HyperErr({ msg: "cache not found", status: 404 })),
+  // some other error so passthrough
+  (e) => {
+    console.log(e);
+    return e;
+  },
+);
+
 const xDoc = compose(
   evolve({
     id: identity,
@@ -90,6 +100,10 @@ export default (db) => {
   const createDoc = ({ store, key, value, ttl }) => {
     return Async.of(`select key from ${quote(store)} where key = ?`)
       .chain((q) => query(q, [key]))
+      .bimap(
+        mapCacheDne,
+        identity,
+      )
       .chain(ifElse(
         length,
         () =>
@@ -106,12 +120,6 @@ export default (db) => {
               ttl || 0,
               new Date().toISOString(),
             ],
-          ).bimap(
-            (e) => {
-              console.log(e);
-              return HyperErr({ ok: false, status: 400 });
-            },
-            identity,
           ),
       ))
       .bichain(
@@ -123,6 +131,10 @@ export default (db) => {
   const deleteDoc = ({ store, key }) => {
     return Async.of(`delete from ${quote(store)} where key = ?`)
       .chain((q) => query(q, [key]))
+      .bimap(
+        mapCacheDne,
+        identity,
+      )
       .bichain(
         handleHyperErr,
         always(Async.Resolved({ ok: true })),
@@ -134,6 +146,10 @@ export default (db) => {
       `select id, key, value, ttl, timestmp from ${quote(store)} where key = ?`,
     )
       .chain((q) => query(q, [key]))
+      .bimap(
+        mapCacheDne,
+        identity,
+      )
       .chain(ifElse(
         length,
         Async.Resolved,
@@ -170,6 +186,10 @@ export default (db) => {
   const updateDoc = ({ store, key, value, ttl }) => {
     return Async.of(`select id, value from ${quote(store)} where key = ?`)
       .chain((q) => query(q, [key]))
+      .bimap(
+        mapCacheDne,
+        identity,
+      )
       // upsert
       .chain(ifElse(
         complement(length),
@@ -199,16 +219,7 @@ export default (db) => {
           );
         },
       ))
-      .bimap(
-        (e) => {
-          console.log(e);
-          return HyperErr({
-            status: 400,
-            msg: e.message,
-          });
-        },
-        always({ ok: true }),
-      )
+      .map(always({ ok: true }))
       .bichain(
         handleHyperErr,
         Async.Resolved,
@@ -220,13 +231,7 @@ export default (db) => {
     return Async.of(`select key, value from ${quote(store)} where key like ?`)
       .chain((q) => query(q, [pattern.replace("*", "%")]))
       .bimap(
-        (e) => {
-          console.log(e);
-          return HyperErr({
-            status: 400,
-            msg: "cache not created",
-          });
-        },
+        mapCacheDne,
         map(toObject),
       )
       .bichain(
@@ -244,11 +249,7 @@ export default (db) => {
     return Async.of(`drop table ${quote(name)}`)
       .chain(query)
       .bimap(
-        ifElse(
-          (e) => includes("no such table", e.message),
-          always(HyperErr({ msg: "cache not found", status: 404 })),
-          identity,
-        ),
+        mapCacheDne,
         identity,
       )
       .bichain(
