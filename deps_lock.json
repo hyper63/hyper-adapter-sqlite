@@ -309,13 +309,13 @@
   "https://deno.land/x/date_fns@v2.22.1/isAfter/index.ts": "92cc31545b412f2e7fd2c9b47b3356e24b22fd71e47d0ad65dacb2ee73daa1b1",
   "https://deno.land/x/date_fns@v2.22.1/parseISO/index.js": "e024db1aa7b8b6f73c5166e0a9ce7667d496ce2a8316029c0770efd7e850cad8",
   "https://deno.land/x/date_fns@v2.22.1/toDate/index.ts": "212facd1ac2edfca2a84430dad7d96c2b65509643b9d2cd40b4f1c92a6e58aef",
-  "https://deno.land/x/sqlite@v3.2.1/build/sqlite.d.ts": "e83278ce9e8b3279c793f0cac2ab4e4da3b2ed024ded646c0c06e9c2f8e57b71",
-  "https://deno.land/x/sqlite@v3.2.1/build/sqlite.js": "087db9bdacd1e5bb8b538ba328e5105571cc6d716deb9923e2eb5c8af763991a",
-  "https://deno.land/x/sqlite@v3.2.1/build/vfs.js": "baff72655c0916c906327fe6703c6a47daa1346e55c2eaa2629bcd879a673c8d",
-  "https://deno.land/x/sqlite@v3.2.1/mod.ts": "eb55ff3e103826ee735fa1a8ec2db6e96c8fec826faf198239c66a0fe635c4b6",
-  "https://deno.land/x/sqlite@v3.2.1/src/constants.ts": "b967237b460fafa03ca03aeddb33953bed41c7cbdc309a934e2329a5c84079ac",
-  "https://deno.land/x/sqlite@v3.2.1/src/db.ts": "f778a82f638c2e33c832c8d0e60144d11d0118d40f6ffb397cfa059c2b8e0c36",
-  "https://deno.land/x/sqlite@v3.2.1/src/error.ts": "abf9df169951faf8c21a68d99ef9efd257c788c19784f27dd147507fbdfe5fe7",
-  "https://deno.land/x/sqlite@v3.2.1/src/query.ts": "df4d3d6b23d52b36243dd47c07ed6ed7cd23f7834a0f6a2f2c6dbffba63d4c28",
-  "https://deno.land/x/sqlite@v3.2.1/src/wasm.ts": "e79d0baa6e42423257fb3c7cc98091c54399254867e0f34a09b5bdef37bd9487"
+  "https://deno.land/x/sqlite@v3.3.0/build/sqlite.d.ts": "b52e6b5ea2e0517750be2ea1eae8da0edd5056c1f285247aa1c0153f4ef504ec",
+  "https://deno.land/x/sqlite@v3.3.0/build/sqlite.js": "0b74712a5db206aa399f9833c40fd08eb24dfaff5dee77749e4bcadb333ec676",
+  "https://deno.land/x/sqlite@v3.3.0/build/vfs.js": "baff72655c0916c906327fe6703c6a47daa1346e55c2eaa2629bcd879a673c8d",
+  "https://deno.land/x/sqlite@v3.3.0/mod.ts": "eb55ff3e103826ee735fa1a8ec2db6e96c8fec826faf198239c66a0fe635c4b6",
+  "https://deno.land/x/sqlite@v3.3.0/src/constants.ts": "b967237b460fafa03ca03aeddb33953bed41c7cbdc309a934e2329a5c84079ac",
+  "https://deno.land/x/sqlite@v3.3.0/src/db.ts": "59b9c4fbe733da0e512dcd6b1f1f6a5ac8b165b565505670e9b81a73803dd36a",
+  "https://deno.land/x/sqlite@v3.3.0/src/error.ts": "abf9df169951faf8c21a68d99ef9efd257c788c19784f27dd147507fbdfe5fe7",
+  "https://deno.land/x/sqlite@v3.3.0/src/query.ts": "df4d3d6b23d52b36243dd47c07ed6ed7cd23f7834a0f6a2f2c6dbffba63d4c28",
+  "https://deno.land/x/sqlite@v3.3.0/src/wasm.ts": "e79d0baa6e42423257fb3c7cc98091c54399254867e0f34a09b5bdef37bd9487"
 }
