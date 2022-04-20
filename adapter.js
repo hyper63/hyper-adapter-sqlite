@@ -55,7 +55,7 @@ const toObject = ([k, v]) => ({ key: k, value: JSON.parse(v) });
 const quote = (str) => `"${str}"`;
 
 const createTable = (name) => `
-CREATE TABLE IF NOT EXISTS ${quote(name)} (
+CREATE TABLE ${quote(name)} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT,
   value TEXT,
@@ -72,15 +72,13 @@ export default (db) => {
   const createStore = (name) => {
     return Async.of(createTable(name))
       .chain(query)
-      .bichain(
-        (e) => {
-          console.log(e);
-          return Async.Rejected(HyperErr({
-            status: 500,
-            msg: "Could not create store",
-          }));
-        },
-        Async.Resolved,
+      .bimap(
+        ifElse(
+          (e) => includes("already exists", e.message),
+          always(HyperErr({ msg: "cache already exists", status: 409 })),
+          identity,
+        ),
+        identity,
       )
       .bichain(
         handleHyperErr,

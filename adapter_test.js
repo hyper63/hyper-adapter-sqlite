@@ -16,6 +16,15 @@ test("should implement the port", () => {
 test("should escape/quote special characters", async () => {
   const res = await cache.createStore("test-special_default~characters");
   assert(res.ok);
+  await cache.destroyStore("test-special_default~characters");
+});
+
+test("should 409 if cache already exists", async () => {
+  await cache.createStore("test");
+  const res = await cache.createStore("test");
+  assert(!res.ok);
+  assertEquals(res.status, 409);
+  await cache.destroyStore("test");
 });
 
 test("create cache doc", async () => {
@@ -26,7 +35,7 @@ test("create cache doc", async () => {
     value: { type: "movie", title: "Ghostbusters" },
   });
   assert(res.ok);
-  await cache.deleteDoc({ store: "test", key: "1" });
+  await cache.destroyStore("test");
 });
 
 test("get cache document", async () => {
@@ -39,7 +48,7 @@ test("get cache document", async () => {
   const res = await cache.getDoc({ store: "test", key: "2" });
   assertEquals(res.type, "movie");
   assertEquals(res.title, "Star Wars");
-  await cache.deleteDoc({ store: "test", key: "2" });
+  await cache.destroyStore("test");
 });
 
 test("get cache document not found", async () => {
@@ -47,7 +56,7 @@ test("get cache document not found", async () => {
   const res = await cache.getDoc({ store: "test", key: "3" });
   assert(!res.ok);
   assertEquals(res.status, 404);
-  await cache.deleteDoc({ store: "test", key: "3" });
+  await cache.destroyStore("test");
 });
 
 test("update cache document", async () => {
@@ -68,10 +77,7 @@ test("update cache document", async () => {
     key: "4",
   });
   assertEquals(movie.year, "1981");
-  await cache.deleteDoc({
-    store: "test",
-    key: "4",
-  });
+  await cache.destroyStore("test");
 });
 
 test("update cache document not found should upsert", async () => {
@@ -82,6 +88,7 @@ test("update cache document not found should upsert", async () => {
     value: { type: "movie", title: "The last start fighter", year: "1989" },
   });
   assert(res.ok);
+  await cache.destroyStore("test");
 });
 
 test("list documents by pattern", async () => {
@@ -112,9 +119,7 @@ test("list documents by pattern", async () => {
   assert(res.ok);
   assertEquals(res.docs.length, 3);
   // clean up
-  await cache.deleteDoc({ store, key: "team-1" });
-  await cache.deleteDoc({ store, key: "team-2" });
-  await cache.deleteDoc({ store, key: "team-3" });
+  await cache.destroyStore("test");
 });
 
 test("destroy cache", async () => {
@@ -149,7 +154,7 @@ test("ttl feature expired", async () => {
   assertEquals(team.ok, false);
   assertEquals(team.status, 404);
   // clean up
-  await cache.deleteDoc({ store, key: "item-8" });
+  await cache.destroyStore("test");
 });
 
 test("ttl feature not expired", async () => {
@@ -168,5 +173,5 @@ test("ttl feature not expired", async () => {
   });
   assertEquals(team.name, "Temp Item 2");
   // clean up
-  await cache.deleteDoc({ store, key: "item-10" });
+  await cache.destroyStore("test");
 });
