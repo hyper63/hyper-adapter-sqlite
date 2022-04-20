@@ -125,6 +125,13 @@ test("destroy cache", async () => {
   assert(res.ok);
 });
 
+test("destroy cache should 404 if does not exist", async () => {
+  const store = "test";
+  const res = await cache.destroyStore(store);
+  assert(!res.ok);
+  assertEquals(res.status, 404);
+});
+
 test("ttl feature expired", async () => {
   // setup
   const store = "test";

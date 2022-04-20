@@ -20,11 +20,12 @@ const {
   length,
   ifElse,
   map,
+  includes,
   complement,
 } = R;
 
 const asyncify = (fn) =>
-  Async.fromPromise((...args) => Promise.resolve(fn(...args)));
+  Async.fromPromise(async (...args) => await fn(...args));
 
 const handleHyperErr = ifElse(
   isHyperErr,
@@ -245,10 +246,11 @@ export default (db) => {
     return Async.of(`drop table ${quote(name)}`)
       .chain(query)
       .bimap(
-        (e) => {
-          console.log(e);
-          return HyperErr();
-        },
+        ifElse(
+          (e) => includes("no such table", e.message),
+          always(HyperErr({ msg: "cache not found", status: 404 })),
+          identity,
+        ),
         identity,
       )
       .bichain(
