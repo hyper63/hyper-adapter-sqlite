@@ -22,6 +22,9 @@ const {
   map,
   includes,
   complement,
+  partition,
+  pluck,
+  pick,
 } = R;
 
 const asyncify = (fn) =>
@@ -52,15 +55,13 @@ const xDoc = compose(
     timestmp: identity,
   }),
   zipObj(["id", "key", "value", "ttl", "timestmp"]),
-  head,
 );
 
 const expired = (ttl, timestmp) => {
+  if (ttl <= 0) return false;
   const stop = addMilliseconds(parseISO(timestmp), ttl);
   return isAfter(new Date(), stop);
 };
-
-const toObject = ([k, v]) => ({ key: k, value: JSON.parse(v) });
 
 const quote = (str) => `"${str}"`;
 
@@ -78,6 +79,24 @@ insert into ${quote(table)} (key,value,ttl,timestmp) values (?, ?, ?, ?)`;
 
 export default (db) => {
   const query = asyncify(db.query.bind(db));
+
+  const evictExpired = (store) =>
+    ifElse(
+      length,
+      (docs) =>
+        Async.Resolved(docs)
+          .map(partition((doc) => expired(doc.ttl, doc.timestmp)))
+          .chain(([expired, good]) => {
+            return expired.length
+              // evict all expired docs, then return the good ones
+              ? query(
+                `delete from ${quote(store)} where id in (?)`,
+                pluck("id", expired),
+              ).map(always(good))
+              : Async.Resolved(good);
+          }),
+      Async.Resolved,
+    );
 
   const createStore = (name) => {
     return Async.of(createTable(name))
@@ -159,23 +178,16 @@ export default (db) => {
             msg: "document not found",
           })),
       ))
-      .map(xDoc)
-      .chain(
-        (doc) => {
-          if (doc.ttl > 0 && expired(doc.ttl, doc.timestmp)) {
-            return query(`delete from ${quote(store)} where id = ?`, [doc.id])
-              .chain(() =>
-                Async.Rejected(HyperErr({ status: 404, msg: "ttl expired!" }))
-              );
-          }
-
-          // update timestmp
-          return query(
-            `update ${quote(store)} set timestmp = ? where id = ?`,
-            new Date().toISOString(),
-            doc.id,
-          ).map(always(doc.value));
-        },
+      .map(compose(
+        xDoc,
+        head, // just one result will come back, so just grab it
+      ))
+      .chain((doc) => evictExpired(store)([doc]))
+      .map(head) // just one result will come back, so just grab it
+      .chain((doc) =>
+        doc
+          ? Async.Resolved(doc.value)
+          : Async.Rejected(HyperErr({ status: 404, msg: "ttl expired!" }))
       )
       .bichain(
         handleHyperErr,
@@ -228,12 +240,18 @@ export default (db) => {
   };
 
   const listDocs = ({ store, pattern }) => {
-    return Async.of(`select key, value from ${quote(store)} where key like ?`)
+    return Async.of(
+      `select id, key, value, ttl, timestmp from ${
+        quote(store)
+      } where key like ?`,
+    )
       .chain((q) => query(q, [pattern.replace("*", "%")]))
       .bimap(
         mapCacheDne,
-        map(toObject),
+        map(xDoc),
       )
+      .chain(evictExpired(store))
+      .map(map(pick(["key", "value"])))
       .bichain(
         handleHyperErr,
         (docs) => Async.Resolved({ ok: true, docs }),
