@@ -159,6 +159,52 @@ test("ttl feature expired", async () => {
   });
   assertEquals(team.ok, false);
   assertEquals(team.status, 404);
+
+  const res = await cache.listDocs({
+    store: "test",
+    pattern: "item-8",
+  });
+  assertEquals(res.docs.length, 0);
+
+  // clean up
+  await cache.destroyStore("test");
+});
+
+test("ttl feature mixed", async () => {
+  // setup
+  const store = "test";
+  await cache.createStore(store);
+
+  // this document will be evicted
+  await cache.createDoc({
+    store,
+    key: "item-8",
+    value: { name: "Temp Item" },
+    ttl: 1,
+  });
+
+  // these will not
+  await cache.createDoc({
+    store,
+    key: "item-9",
+    value: { name: "Temp Item 9" },
+    ttl: 1000 * 60 * 60,
+  });
+
+  await cache.createDoc({
+    store,
+    key: "item-10",
+    value: { name: "Temp Item 10" },
+    ttl: 1000 * 60 * 60,
+  });
+
+  const res = await cache.listDocs({
+    store,
+    pattern: "item-*",
+  });
+
+  assert(res.ok);
+  assertEquals(res.docs.length, 2);
   // clean up
   await cache.destroyStore("test");
 });
@@ -174,10 +220,16 @@ test("ttl feature not expired", async () => {
     ttl: 1000 * 60 * 60,
   });
   const team = await cache.getDoc({
-    store: "test",
+    store,
     key: "item-10",
   });
   assertEquals(team.name, "Temp Item 2");
+
+  const res = await cache.listDocs({
+    store,
+    pattern: "item-10",
+  });
+  assertEquals(res.docs.length, 1);
   // clean up
   await cache.destroyStore("test");
 });
