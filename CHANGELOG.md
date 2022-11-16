@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.3](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.2...v2.0.3) (2022-11-16)
+
+
+### Bug Fixes
+
+* build eviction binding programatically [#15](https://github.com/hyper63/hyper-adapter-sqlite/issues/15) ([aae273d](https://github.com/hyper63/hyper-adapter-sqlite/commit/aae273db5391690dee89fbcdac3eab1b90e2e9dd))
+
 ### [2.0.2](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.1...v2.0.2) (2022-10-06)
 
 
