@@ -154,15 +154,30 @@ test("ttl feature expired", async () => {
     ttl: 1,
   });
   const team = await cache.getDoc({
-    store: "test",
+    store,
     key: "item-8",
   });
   assertEquals(team.ok, false);
   assertEquals(team.status, 404);
 
+  await cache.createDoc({
+    store,
+    key: "item-9",
+    value: { name: "Temp Item" },
+    ttl: 1,
+  });
+  await cache.createDoc({
+    store,
+    key: "item-10",
+    value: { name: "Temp Item" },
+    ttl: 1,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
   const res = await cache.listDocs({
-    store: "test",
-    pattern: "item-8",
+    store,
+    pattern: "item-*",
   });
   assertEquals(res.docs.length, 0);
 
@@ -197,6 +212,8 @@ test("ttl feature mixed", async () => {
     value: { name: "Temp Item 10" },
     ttl: 1000 * 60 * 60,
   });
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
 
   const res = await cache.listDocs({
     store,

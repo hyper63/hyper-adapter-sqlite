@@ -90,7 +90,9 @@ export default (db) => {
             return expired.length
               // evict all expired docs, then return the good ones
               ? query(
-                `delete from ${quote(store)} where id in (?)`,
+                `delete from ${quote(store)} where id in (${
+                  // See https://stackoverflow.com/questions/4788724/sqlite-bind-list-of-values-to-where-col-in-prm
+                  Array(expired.length).fill("?").join(",")})`,
                 pluck("id", expired),
               ).map(always(good))
               : Async.Resolved(good);
