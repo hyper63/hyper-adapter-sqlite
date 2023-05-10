@@ -5,268 +5,353 @@ import { assert, assertEquals, assertObjectMatch, validateCacheAdapterSchema } f
 const cache = adapter(new DB(`./test.db`))
 const test = Deno.test
 
-test('should implement the port', () => {
-  assert(validateCacheAdapterSchema(cache))
-})
-
-test('should escape/quote special characters', async () => {
-  const res = await cache.createStore('test-special_default~characters')
-  assert(res.ok)
-  await cache.destroyStore('test-special_default~characters')
-})
-
-test('should 409 if cache already exists', async () => {
-  await cache.createStore('test')
-  const res = await cache.createStore('test')
-  assert(!res.ok)
-  assertEquals(res.status, 409)
-  await cache.destroyStore('test')
-})
-
-test('create cache doc', async () => {
-  await cache.createStore('test')
-  const res = await cache.createDoc({
-    store: 'test',
-    key: '1',
-    value: { type: 'movie', title: 'Ghostbusters' },
-  })
-  assert(res.ok)
-  await cache.destroyStore('test')
-})
-
-test('get cache document', async () => {
-  await cache.createStore('test')
-  await cache.createDoc({
-    store: 'test',
-    key: '2',
-    value: { type: 'movie', title: 'Star Wars' },
-  })
-  const res = await cache.getDoc({ store: 'test', key: '2' })
-  assertEquals(res.type, 'movie')
-  assertEquals(res.title, 'Star Wars')
-  await cache.destroyStore('test')
-})
-
-test('get cache document not found', async () => {
-  await cache.createStore('test')
-  const res = await cache.getDoc({ store: 'test', key: '3' })
-  assert(!res.ok)
-  assertEquals(res.status, 404)
-  await cache.destroyStore('test')
-})
-
-test('update cache document', async () => {
-  await cache.createStore('test')
-  await cache.createDoc({
-    store: 'test',
-    key: '4',
-    value: { type: 'movie', title: 'Star Trek' },
-  })
-  const res = await cache.updateDoc({
-    store: 'test',
-    key: '4',
-    value: { type: 'movie', title: 'Star Trek', year: '1981' },
-  })
-  assert(res.ok)
-  const movie = await cache.getDoc({
-    store: 'test',
-    key: '4',
-  })
-  assertEquals(movie.year, '1981')
-  await cache.destroyStore('test')
-})
-
-test('update cache document not found should upsert', async () => {
-  await cache.createStore('test')
-  const res = await cache.updateDoc({
-    store: 'test',
-    key: '6',
-    value: { type: 'movie', title: 'The last start fighter', year: '1989' },
-  })
-  assert(res.ok)
-  await cache.destroyStore('test')
-})
-
-test('list documents by pattern', async () => {
-  // setup
-  const store = 'test'
-  await cache.createStore(store)
-  await cache.createDoc({
-    store,
-    key: 'team-1',
-    value: { name: 'Atlanta Braves' },
-  })
-  await cache.createDoc({
-    store,
-    key: 'team-2',
-    value: { name: 'Carolina Panthers' },
-  })
-  await cache.createDoc({
-    store,
-    key: 'team-3',
-    value: { name: 'Georgia Bulldogs' },
+test('adapter', async (t) => {
+  await t.step('should implement the port', () => {
+    assert(validateCacheAdapterSchema(cache))
   })
 
-  // test
-  const res = await cache.listDocs({
-    store: 'test',
-    pattern: 'team-*',
-  })
-  assert(res.ok)
-  assertEquals(res.docs.length, 3)
-  // clean up
-  await cache.destroyStore('test')
-})
+  await t.step('ttl', async (t) => {
+    await t.step('should expire the document', async () => {
+      // setup
+      const store = 'test'
+      await cache.createStore(store)
+      await cache.createDoc({
+        store,
+        key: 'item-8',
+        value: { name: 'Temp Item' },
+        ttl: 1,
+      })
 
-test('destroy cache', async () => {
-  const store = 'test'
-  await cache.createStore(store)
+      await new Promise((resolve) => setTimeout(resolve, 10))
 
-  const res = await cache.destroyStore(store)
-  assert(res.ok)
-})
+      const team = await cache.getDoc({
+        store,
+        key: 'item-8',
+      })
+      assertEquals(team.ok, false)
+      assertEquals(team.status, 404)
 
-test('destroy cache should 404 if does not exist', async () => {
-  const store = 'test'
-  const res = await cache.destroyStore(store)
-  assert(!res.ok)
-  assertEquals(res.status, 404)
-})
+      await cache.createDoc({
+        store,
+        key: 'item-9',
+        value: { name: 'Temp Item' },
+        ttl: 1,
+      })
+      await cache.createDoc({
+        store,
+        key: 'item-10',
+        value: { name: 'Temp Item' },
+        ttl: 1,
+      })
 
-test('all methods should 404 if does not exist', async () => {
-  const res = await cache.getDoc({ store: 'test', key: '1' })
-  assert(!res.ok)
-  assertEquals(res.status, 404)
-})
+      await new Promise((resolve) => setTimeout(resolve, 10))
 
-test('ttl feature expired', async () => {
-  // setup
-  const store = 'test'
-  await cache.createStore(store)
-  await cache.createDoc({
-    store,
-    key: 'item-8',
-    value: { name: 'Temp Item' },
-    ttl: 1,
-  })
-  const team = await cache.getDoc({
-    store,
-    key: 'item-8',
-  })
-  assertEquals(team.ok, false)
-  assertEquals(team.status, 404)
+      const res = await cache.listDocs({
+        store,
+        pattern: 'item-*',
+      })
+      assertEquals(res.docs.length, 0)
 
-  await cache.createDoc({
-    store,
-    key: 'item-9',
-    value: { name: 'Temp Item' },
-    ttl: 1,
-  })
-  await cache.createDoc({
-    store,
-    key: 'item-10',
-    value: { name: 'Temp Item' },
-    ttl: 1,
-  })
+      // clean up
+      await cache.destroyStore('test')
+    })
 
-  await new Promise((resolve) => setTimeout(resolve, 10))
+    await t.step('should expire only documents who ttl has elapsed', async () => {
+      // setup
+      const store = 'test'
+      await cache.createStore(store)
 
-  const res = await cache.listDocs({
-    store,
-    pattern: 'item-*',
-  })
-  assertEquals(res.docs.length, 0)
+      // this document will be expired and removed
+      await cache.createDoc({
+        store,
+        key: 'item-8',
+        value: { name: 'Temp Item' },
+        ttl: 1,
+      })
 
-  // clean up
-  await cache.destroyStore('test')
-})
+      // these will not
+      await cache.createDoc({
+        store,
+        key: 'item-9',
+        value: { name: 'Temp Item 9' },
+        ttl: 1000 * 60 * 60,
+      })
 
-test('ttl feature mixed', async () => {
-  // setup
-  const store = 'test'
-  await cache.createStore(store)
+      await cache.createDoc({
+        store,
+        key: 'item-10',
+        value: { name: 'Temp Item 10' },
+        ttl: 1000 * 60 * 60,
+      })
 
-  // this document will be evicted
-  await cache.createDoc({
-    store,
-    key: 'item-8',
-    value: { name: 'Temp Item' },
-    ttl: 1,
-  })
+      await new Promise((resolve) => setTimeout(resolve, 10))
 
-  // these will not
-  await cache.createDoc({
-    store,
-    key: 'item-9',
-    value: { name: 'Temp Item 9' },
-    ttl: 1000 * 60 * 60,
-  })
+      const res = await cache.listDocs({
+        store,
+        pattern: 'item-*',
+      })
 
-  await cache.createDoc({
-    store,
-    key: 'item-10',
-    value: { name: 'Temp Item 10' },
-    ttl: 1000 * 60 * 60,
-  })
+      assert(res.ok)
+      assertEquals(res.docs.length, 2)
 
-  await new Promise((resolve) => setTimeout(resolve, 10))
+      // clean up
+      await cache.destroyStore('test')
+    })
 
-  const res = await cache.listDocs({
-    store,
-    pattern: 'item-*',
-  })
+    await t.step('should return cached docs whose ttl has not elapsed', async () => {
+      // setup
+      const store = 'test'
+      await cache.createStore(store)
+      await cache.createDoc({
+        store,
+        key: 'item-10',
+        value: { name: 'Temp Item 2' },
+        ttl: 1000 * 60 * 60,
+      })
 
-  assert(res.ok)
-  assertEquals(res.docs.length, 2)
-  // clean up
-  await cache.destroyStore('test')
-})
+      const team = await cache.getDoc({
+        store,
+        key: 'item-10',
+      })
+      assertEquals(team.name, 'Temp Item 2')
 
-test('ttl feature not expired', async () => {
-  // setup
-  const store = 'test'
-  await cache.createStore(store)
-  await cache.createDoc({
-    store,
-    key: 'item-10',
-    value: { name: 'Temp Item 2' },
-    ttl: 1000 * 60 * 60,
-  })
-  const team = await cache.getDoc({
-    store,
-    key: 'item-10',
-  })
-  assertEquals(team.name, 'Temp Item 2')
+      const res = await cache.listDocs({
+        store,
+        pattern: 'item-10',
+      })
+      assertEquals(res.docs.length, 1)
 
-  const res = await cache.listDocs({
-    store,
-    pattern: 'item-10',
-  })
-  assertEquals(res.docs.length, 1)
-  // clean up
-  await cache.destroyStore('test')
-})
+      // clean up
+      await cache.destroyStore('test')
+    })
 
-test('ttl feature negative ttl should immediately expire', async () => {
-  await cache.createStore('test')
-  await cache.createDoc({
-    store: 'test',
-    key: '1',
-    value: { type: 'movie', title: 'Ghostbusters' },
-    ttl: -100,
+    await t.step('should immediately expire doc with negative ttl', async () => {
+      // setup
+      await cache.createStore('test')
+      await cache.createDoc({
+        store: 'test',
+        key: '1',
+        value: { type: 'movie', title: 'Ghostbusters' },
+        ttl: -100,
+      })
+
+      await new Promise((resolve) => setTimeout(resolve, 10))
+
+      const res = await cache.getDoc({
+        store: 'test',
+        key: '1',
+      })
+
+      assertObjectMatch(res, {
+        ok: false,
+        status: 404,
+      })
+
+      // clean up
+      await cache.destroyStore('test')
+    })
   })
 
-  const res = await cache.getDoc({
-    store: 'test',
-    key: '1',
+  await t.step('createStore', async (t) => {
+    await t.step('should escape/quote special characters', async () => {
+      const res = await cache.createStore('test-special_default~characters')
+      assert(res.ok)
+
+      // clean up
+      await cache.destroyStore('test-special_default~characters')
+    })
+
+    await t.step('should 409 if cache already exists', async () => {
+      // setup
+      await cache.createStore('test')
+
+      const res = await cache.createStore('test')
+
+      assert(!res.ok)
+      assertEquals(res.status, 409)
+
+      // clean up
+      await cache.destroyStore('test')
+    })
   })
 
-  await new Promise((resolve) => setTimeout(resolve, 20))
+  await t.step('createDoc', async (t) => {
+    await t.step('should create the cache doc', async () => {
+      // setup
+      await cache.createStore('test')
 
-  assertObjectMatch(res, {
-    ok: false,
-    status: 404,
+      const res = await cache.createDoc({
+        store: 'test',
+        key: '1',
+        value: { type: 'movie', title: 'Ghostbusters' },
+      })
+      assert(res.ok)
+
+      // clean up
+      await cache.destroyStore('test')
+    })
   })
 
-  await cache.destroyStore('test')
+  await t.step('getDoc', async (t) => {
+    await t.step('should get the cached document', async () => {
+      // setup
+      await cache.createStore('test')
+      await cache.createDoc({
+        store: 'test',
+        key: '2',
+        value: { type: 'movie', title: 'Star Wars' },
+      })
+
+      const res = await cache.getDoc({ store: 'test', key: '2' })
+
+      assertEquals(res.type, 'movie')
+      assertEquals(res.title, 'Star Wars')
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+
+    await t.step('should return a HyperErr with status 404 if not found', async () => {
+      // setup
+      await cache.createStore('test')
+
+      const res = await cache.getDoc({ store: 'test', key: '3' })
+
+      assertObjectMatch(res, {
+        ok: false,
+        status: 404,
+      })
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+  })
+
+  await t.step('updateDoc', async (t) => {
+    await t.step('should update the cache doc', async () => {
+      // setup
+      await cache.createStore('test')
+      await cache.createDoc({
+        store: 'test',
+        key: '4',
+        value: { type: 'movie', title: 'Star Trek' },
+      })
+
+      const res = await cache.updateDoc({
+        store: 'test',
+        key: '4',
+        value: { type: 'movie', title: 'Star Trek', year: '1981' },
+      })
+      assert(res.ok)
+      const movie = await cache.getDoc({
+        store: 'test',
+        key: '4',
+      })
+      assertEquals(movie.year, '1981')
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+
+    test('should upsert the cached document if not found', async () => {
+      // setup
+      await cache.createStore('test')
+
+      const res = await cache.updateDoc({
+        store: 'test',
+        key: '6',
+        value: { type: 'movie', title: 'The last start fighter', year: '1989' },
+      })
+      assert(res.ok)
+      const movie = await cache.getDoc({
+        store: 'test',
+        key: '6',
+      })
+      assertEquals(movie.year, '1989')
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+  })
+
+  await t.step('deleteDoc', async (t) => {
+    await t.step('should remove the document', async () => {
+      // setup
+      await cache.createStore('test')
+      await cache.createDoc({
+        store: 'test',
+        key: '4',
+        value: { type: 'movie', title: 'Star Trek' },
+      })
+
+      const res = await cache.deleteDoc({
+        store: 'test',
+        key: '4',
+      })
+      assert(res.ok)
+      const notFound = await cache.getDoc({
+        store: 'test',
+        key: '4',
+      })
+      assertObjectMatch(notFound, {
+        ok: false,
+        status: 404,
+      })
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+  })
+
+  await t.step('listDocs', async (t) => {
+    await t.step('should return documents whose key matches the pattern', async () => {
+      // setup
+      const store = 'test'
+      await cache.createStore(store)
+      await cache.createDoc({
+        store,
+        key: 'team-1',
+        value: { name: 'Atlanta Braves' },
+      })
+      await cache.createDoc({
+        store,
+        key: 'team-2',
+        value: { name: 'Carolina Panthers' },
+      })
+      await cache.createDoc({
+        store,
+        key: 'team-3',
+        value: { name: 'Georgia Bulldogs' },
+      })
+
+      // test
+      const res = await cache.listDocs({
+        store: 'test',
+        pattern: 'team-*',
+      })
+      assert(res.ok)
+      assertEquals(res.docs.length, 3)
+
+      // clean up
+      await cache.destroyStore('test')
+    })
+  })
+
+  await t.step('destroyStore', async (t) => {
+    await t.step('should remove the cache store', async () => {
+      // setup
+      const store = 'test'
+      await cache.createStore(store)
+
+      const res = await cache.destroyStore(store)
+      assert(res.ok)
+    })
+
+    test('should return a HyperErr with status 404 if cache store does not exist', async () => {
+      const store = 'test'
+      const res = await cache.destroyStore(store)
+      assert(!res.ok)
+      assertEquals(res.status, 404)
+    })
+  })
 })

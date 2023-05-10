@@ -76,6 +76,9 @@ CREATE TABLE ${quote(name)} (
   timestmp TEXT
 )
 `
+
+const dropTable = (name) => `drop table ${quote(name)}`
+
 const insertDoc = (table) => `
 insert into ${quote(table)} (key,value,ttl,timestmp) values (?, ?, ?, ?)`
 
@@ -262,7 +265,7 @@ export default (db) => {
   }
 
   const destroyStore = (name) => {
-    return Async.of(`drop table ${quote(name)}`)
+    return Async.of(dropTable(name))
       .chain(query)
       .bimap(
         mapCacheDne,
