@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [2.0.4](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.3...v2.0.4) (2023-05-10)
+
+
+### Bug Fixes
+
+* **ttl:** negative ttl immediately expires [#17](https://github.com/hyper63/hyper-adapter-sqlite/issues/17) ([dc07b60](https://github.com/hyper63/hyper-adapter-sqlite/commit/dc07b604ead2c14c961e09119693d4b12de81b01))
 
 ### [2.0.3](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.2...v2.0.3) (2022-11-16)
 
