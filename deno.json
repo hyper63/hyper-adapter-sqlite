@@ -1,7 +1,0 @@
-{
-  "fmt": {
-    "files": {
-      "exclude": ["CHANGELOG.md"]
-    }
-  }
-}

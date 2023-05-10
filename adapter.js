@@ -1,14 +1,6 @@
-import {
-  addMilliseconds,
-  crocks,
-  HyperErr,
-  isAfter,
-  isHyperErr,
-  parseISO,
-  R,
-} from "./deps.js";
+import { addMilliseconds, crocks, HyperErr, isAfter, isHyperErr, parseISO, R } from './deps.js'
 
-const { Async } = crocks;
+const { Async } = crocks
 
 const {
   always,
@@ -25,26 +17,25 @@ const {
   partition,
   pluck,
   pick,
-} = R;
+} = R
 
-const asyncify = (fn) =>
-  Async.fromPromise(async (...args) => await fn(...args));
+const asyncify = (fn) => Async.fromPromise(async (...args) => await fn(...args))
 
 const handleHyperErr = ifElse(
   isHyperErr,
   Async.Resolved,
   Async.Rejected,
-);
+)
 
 const mapCacheDne = ifElse(
-  (e) => includes("no such table", e.message),
-  always(HyperErr({ msg: "cache not found", status: 404 })),
+  (e) => includes('no such table', e.message),
+  always(HyperErr({ msg: 'cache not found', status: 404 })),
   // some other error so passthrough
   (e) => {
-    console.log(e);
-    return e;
+    console.log(e)
+    return e
   },
-);
+)
 
 const xDoc = compose(
   evolve({
@@ -54,16 +45,16 @@ const xDoc = compose(
     ttl: identity,
     timestmp: identity,
   }),
-  zipObj(["id", "key", "value", "ttl", "timestmp"]),
-);
+  zipObj(['id', 'key', 'value', 'ttl', 'timestmp']),
+)
 
 const expired = (ttl, timestmp) => {
-  if (ttl <= 0) return false;
-  const stop = addMilliseconds(parseISO(timestmp), ttl);
-  return isAfter(new Date(), stop);
-};
+  if (ttl <= 0) return false
+  const stop = addMilliseconds(parseISO(timestmp), ttl)
+  return isAfter(new Date(), stop)
+}
 
-const quote = (str) => `"${str}"`;
+const quote = (str) => `"${str}"`
 
 const createTable = (name) => `
 CREATE TABLE ${quote(name)} (
@@ -73,12 +64,12 @@ CREATE TABLE ${quote(name)} (
   ttl INTEGER,
   timestmp TEXT
 )
-`;
+`
 const insertDoc = (table) => `
-insert into ${quote(table)} (key,value,ttl,timestmp) values (?, ?, ?, ?)`;
+insert into ${quote(table)} (key,value,ttl,timestmp) values (?, ?, ?, ?)`
 
 export default (db) => {
-  const query = asyncify(db.query.bind(db));
+  const query = asyncify(db.query.bind(db))
 
   const evictExpired = (store) =>
     ifElse(
@@ -92,21 +83,21 @@ export default (db) => {
               ? query(
                 `delete from ${quote(store)} where id in (${
                   // See https://stackoverflow.com/questions/4788724/sqlite-bind-list-of-values-to-where-col-in-prm
-                  Array(expired.length).fill("?").join(",")})`,
-                pluck("id", expired),
+                  Array(expired.length).fill('?').join(',')})`,
+                pluck('id', expired),
               ).map(always(good))
-              : Async.Resolved(good);
+              : Async.Resolved(good)
           }),
       Async.Resolved,
-    );
+    )
 
   const createStore = (name) => {
     return Async.of(createTable(name))
       .chain(query)
       .bimap(
         ifElse(
-          (e) => includes("already exists", e.message),
-          always(HyperErr({ msg: "cache already exists", status: 409 })),
+          (e) => includes('already exists', e.message),
+          always(HyperErr({ msg: 'cache already exists', status: 409 })),
           identity,
         ),
         identity,
@@ -115,8 +106,8 @@ export default (db) => {
         handleHyperErr,
         always(Async.Resolved({ ok: true })),
       )
-      .toPromise();
-  };
+      .toPromise()
+  }
 
   const createDoc = ({ store, key, value, ttl }) => {
     return Async.of(`select key from ${quote(store)} where key = ?`)
@@ -130,7 +121,7 @@ export default (db) => {
         () =>
           Async.Rejected(HyperErr({
             status: 409,
-            msg: "document conflict",
+            msg: 'document conflict',
           })),
         () =>
           query(
@@ -146,8 +137,8 @@ export default (db) => {
       .bichain(
         handleHyperErr,
         always(Async.Resolved({ ok: true })),
-      ).toPromise();
-  };
+      ).toPromise()
+  }
 
   const deleteDoc = ({ store, key }) => {
     return Async.of(`delete from ${quote(store)} where key = ?`)
@@ -159,8 +150,8 @@ export default (db) => {
       .bichain(
         handleHyperErr,
         always(Async.Resolved({ ok: true })),
-      ).toPromise();
-  };
+      ).toPromise()
+  }
 
   const getDoc = ({ store, key }) => {
     return Async.of(
@@ -177,7 +168,7 @@ export default (db) => {
         () =>
           Async.Rejected(HyperErr({
             status: 404,
-            msg: "document not found",
+            msg: 'document not found',
           })),
       ))
       .map(compose(
@@ -189,13 +180,13 @@ export default (db) => {
       .chain((doc) =>
         doc
           ? Async.Resolved(doc.value)
-          : Async.Rejected(HyperErr({ status: 404, msg: "ttl expired!" }))
+          : Async.Rejected(HyperErr({ status: 404, msg: 'ttl expired!' }))
       )
       .bichain(
         handleHyperErr,
         Async.Resolved,
-      ).toPromise();
-  };
+      ).toPromise()
+  }
 
   const updateDoc = ({ store, key, value, ttl }) => {
     return Async.of(`select id, value from ${quote(store)} where key = ?`)
@@ -209,9 +200,7 @@ export default (db) => {
         complement(length),
         () =>
           query(
-            `insert into ${
-              quote(store)
-            } (key, value, ttl, timestmp) values (?, ?, ?, ?)`,
+            `insert into ${quote(store)} (key, value, ttl, timestmp) values (?, ?, ?, ?)`,
             [
               key,
               JSON.stringify(value),
@@ -220,17 +209,15 @@ export default (db) => {
             ],
           ),
         (res) => {
-          const [id] = res[0];
-          const cur = JSON.parse(res[0][1]);
+          const [id] = res[0]
+          const cur = JSON.parse(res[0][1])
           // TODO: should this do a full replace instead of a merge,
           // TODO: for consistency with other hyper adapters?
-          value = JSON.stringify({ ...cur, ...value });
+          value = JSON.stringify({ ...cur, ...value })
           return query(
-            `update ${
-              quote(store)
-            } set value = ?, ttl = ?, timestmp = ? where id = ?`,
+            `update ${quote(store)} set value = ?, ttl = ?, timestmp = ? where id = ?`,
             [value, ttl, new Date().toISOString(), id],
-          );
+          )
         },
       ))
       .map(always({ ok: true }))
@@ -238,32 +225,30 @@ export default (db) => {
         handleHyperErr,
         Async.Resolved,
       )
-      .toPromise();
-  };
+      .toPromise()
+  }
 
   const listDocs = ({ store, pattern }) => {
     return Async.of(
-      `select id, key, value, ttl, timestmp from ${
-        quote(store)
-      } where key like ?`,
+      `select id, key, value, ttl, timestmp from ${quote(store)} where key like ?`,
     )
-      .chain((q) => query(q, [pattern.replace("*", "%")]))
+      .chain((q) => query(q, [pattern.replace('*', '%')]))
       .bimap(
         mapCacheDne,
         map(xDoc),
       )
       .chain(evictExpired(store))
-      .map(map(pick(["key", "value"])))
+      .map(map(pick(['key', 'value'])))
       .bichain(
         handleHyperErr,
         (docs) => Async.Resolved({ ok: true, docs }),
       )
-      .toPromise();
-  };
+      .toPromise()
+  }
 
   const index = () => {
-    return Promise.resolve(HyperErr({ status: 501, msg: "not implemented" }));
-  };
+    return Promise.resolve(HyperErr({ status: 501, msg: 'not implemented' }))
+  }
 
   const destroyStore = (name) => {
     return Async.of(`drop table ${quote(name)}`)
@@ -276,8 +261,8 @@ export default (db) => {
         handleHyperErr,
         always(Async.Resolved({ ok: true })),
       )
-      .toPromise();
-  };
+      .toPromise()
+  }
 
   return {
     createStore,
@@ -288,5 +273,5 @@ export default (db) => {
     listDocs,
     index,
     destroyStore,
-  };
-};
+  }
+}

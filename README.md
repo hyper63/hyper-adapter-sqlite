@@ -19,25 +19,24 @@
 
 ---
 
-Welcome to the sqlite hyper adapter for the cache port, a cache allows you to
-store key,value pairs where the key is a unique string and the value is a JSON
-document. Using this simple pattern, you can store highly accessible data for
-lighting fast reading.
+Welcome to the sqlite hyper adapter for the cache port, a cache allows you to store key,value pairs
+where the key is a unique string and the value is a JSON document. Using this simple pattern, you
+can store highly accessible data for lighting fast reading.
 
 Add the cache adapter to your hyper config
 
 ```js
-import { default as sqlite } from "https://x.nest.land/hyper-adapter-sqlite/mod.js";
+import { default as sqlite } from 'https://x.nest.land/hyper-adapter-sqlite/mod.js'
 
 export default {
   app: opine,
   adapter: [
     {
-      port: "cache",
-      plugins: [sqlite({ dir: "/tmp" })],
+      port: 'cache',
+      plugins: [sqlite({ dir: '/tmp' })],
     },
   ],
-};
+}
 ```
 
 ## Installation
@@ -48,7 +47,7 @@ This is a Deno module available to import from
 deps.js
 
 ```js
-export { default as sqlite } from "https://x.nest.land/hyper-adapter-sqlite/mod.js";
+export { default as sqlite } from 'https://x.nest.land/hyper-adapter-sqlite/mod.js'
 ```
 
 ## Features
