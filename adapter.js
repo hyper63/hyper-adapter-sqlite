@@ -49,12 +49,23 @@ const xDoc = compose(
 )
 
 const expired = (ttl, timestmp) => {
-  if (ttl <= 0) return false
+  if (!ttl) return false
   const stop = addMilliseconds(parseISO(timestmp), ttl)
   return isAfter(new Date(), stop)
 }
 
 const quote = (str) => `"${str}"`
+
+/**
+ * If the ttl is not provided, default to 0
+ * which means store indefinitely
+ *
+ * Otherwise, choose the max of ttl and 1 millisecond.
+ * This way, if a negative ttl is provided, for whatever reason,
+ * it results in the document being expired in the next millisecond,
+ * effectively immediately
+ */
+const mapTtl = (ttl) => ttl == null ? 0 : Math.max(ttl, 1)
 
 const createTable = (name) => `
 CREATE TABLE ${quote(name)} (
@@ -129,7 +140,7 @@ export default (db) => {
             [
               key,
               JSON.stringify(value),
-              ttl || 0,
+              mapTtl(ttl),
               new Date().toISOString(),
             ],
           ),
@@ -204,7 +215,7 @@ export default (db) => {
             [
               key,
               JSON.stringify(value),
-              ttl || 0,
+              mapTtl(ttl),
               new Date().toISOString(),
             ],
           ),

@@ -1,6 +1,6 @@
 import { DB } from './deps.js'
 import adapter from './adapter.js'
-import { assert, assertEquals, validateCacheAdapterSchema } from './dev_deps.js'
+import { assert, assertEquals, assertObjectMatch, validateCacheAdapterSchema } from './dev_deps.js'
 
 const cache = adapter(new DB(`./test.db`))
 const test = Deno.test
@@ -244,5 +244,29 @@ test('ttl feature not expired', async () => {
   })
   assertEquals(res.docs.length, 1)
   // clean up
+  await cache.destroyStore('test')
+})
+
+test('ttl feature negative ttl should immediately expire', async () => {
+  await cache.createStore('test')
+  await cache.createDoc({
+    store: 'test',
+    key: '1',
+    value: { type: 'movie', title: 'Ghostbusters' },
+    ttl: -100,
+  })
+
+  const res = await cache.getDoc({
+    store: 'test',
+    key: '1',
+  })
+
+  await new Promise((resolve) => setTimeout(resolve, 20))
+
+  assertObjectMatch(res, {
+    ok: false,
+    status: 404,
+  })
+
   await cache.destroyStore('test')
 })
