@@ -8,7 +8,7 @@ on:
     branches:
       - main
     tags:
-      - '*'
+      - "*"
 
 jobs:
   test:
@@ -45,13 +45,12 @@ jobs:
         with:
           deno-version: v1.x
 
-      - name: 🥚 Setup Eggs CLI
+      - name: 🥚 Setup Eggy (eggs fork) CLI
         run: |
-          deno install -A -f --unstable --no-check https://x.nest.land/eggs@0.3.10/eggs.ts
+          deno install -Afq --unstable https://x.nest.land/eggy0.3.50/cli.ts
           export PATH="/home/runner/.deno/bin:$PATH"
           eggs link ${{ secrets.NESTAPIKEY }}
 
       - name: 📘 Publish to Nest
         run: |
-          eggs publish --yes 
-          
+          eggs publish --yes
