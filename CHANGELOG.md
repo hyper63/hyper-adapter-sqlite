@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.5](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.4...v2.0.5) (2023-05-11)
+
 ## [2.0.4](https://github.com/hyper63/hyper-adapter-sqlite/compare/v2.0.3...v2.0.4) (2023-05-10)
 
 
