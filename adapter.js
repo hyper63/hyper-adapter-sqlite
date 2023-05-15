@@ -65,7 +65,7 @@ const quote = (str) => `"${str}"`
  * it results in the document being expired in the next millisecond,
  * effectively immediately
  */
-const mapTtl = (ttl) => ttl == null ? 0 : Math.max(ttl, 1)
+const mapTtl = (ttl) => ttl == null ? 0 : Math.max(Number(ttl), 1)
 
 const createTable = (name) => `
 CREATE TABLE ${quote(name)} (

@@ -1,15 +1,15 @@
 import { DB } from './deps.js'
 import adapter from './adapter.js'
-import { assert, assertEquals, assertObjectMatch, validateCacheAdapterSchema } from './dev_deps.js'
+import { assert, assertEquals, assertObjectMatch, cachePort } from './dev_deps.js'
 
-const cache = adapter(new DB(`./test.db`))
+/**
+ * Wrap adapter with the port to ensure inputs and outputs are also
+ * valid and asserted
+ */
+const cache = cachePort(adapter(new DB(`./test.db`)))
 const test = Deno.test
 
 test('adapter', async (t) => {
-  await t.step('should implement the port', () => {
-    assert(validateCacheAdapterSchema(cache))
-  })
-
   await t.step('ttl', async (t) => {
     await t.step('should expire the document', async () => {
       // setup
@@ -19,7 +19,7 @@ test('adapter', async (t) => {
         store,
         key: 'item-8',
         value: { name: 'Temp Item' },
-        ttl: 1,
+        ttl: '1',
       })
 
       await new Promise((resolve) => setTimeout(resolve, 10))
@@ -35,13 +35,13 @@ test('adapter', async (t) => {
         store,
         key: 'item-9',
         value: { name: 'Temp Item' },
-        ttl: 1,
+        ttl: '1',
       })
       await cache.createDoc({
         store,
         key: 'item-10',
         value: { name: 'Temp Item' },
-        ttl: 1,
+        ttl: '1',
       })
 
       await new Promise((resolve) => setTimeout(resolve, 10))
@@ -66,7 +66,7 @@ test('adapter', async (t) => {
         store,
         key: 'item-8',
         value: { name: 'Temp Item' },
-        ttl: 1,
+        ttl: '1',
       })
 
       // these will not
@@ -74,14 +74,14 @@ test('adapter', async (t) => {
         store,
         key: 'item-9',
         value: { name: 'Temp Item 9' },
-        ttl: 1000 * 60 * 60,
+        ttl: String(1000 * 60 * 60),
       })
 
       await cache.createDoc({
         store,
         key: 'item-10',
         value: { name: 'Temp Item 10' },
-        ttl: 1000 * 60 * 60,
+        ttl: String(1000 * 60 * 60),
       })
 
       await new Promise((resolve) => setTimeout(resolve, 10))
@@ -106,7 +106,7 @@ test('adapter', async (t) => {
         store,
         key: 'item-10',
         value: { name: 'Temp Item 2' },
-        ttl: 1000 * 60 * 60,
+        ttl: String(1000 * 60 * 60),
       })
 
       const team = await cache.getDoc({
@@ -132,7 +132,7 @@ test('adapter', async (t) => {
         store: 'test',
         key: '1',
         value: { type: 'movie', title: 'Ghostbusters' },
-        ttl: -100,
+        ttl: String(-100),
       })
 
       await new Promise((resolve) => setTimeout(resolve, 10))
