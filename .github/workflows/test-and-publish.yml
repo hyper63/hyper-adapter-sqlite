@@ -43,14 +43,19 @@ jobs:
       - name: 🦕 Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          # Eggs CLI is broken on Deno >1.25
+          # for now hardpinning the Deno version
+          # but will need to eventually move away from eggs
+          #
+          # See https://github.com/hyper63/hyper-adapter-sqlite/issues/19#issuecomment-1551698333
+          deno-version: v1.25
 
-      - name: 🥚 Setup Eggy (eggs fork) CLI
+      - name: 🥚 Setup Eggs CLI
         run: |
-          deno install -Afq --unstable https://x.nest.land/eggy@0.3.50/cli.ts
+          deno install -Afq --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
           export PATH="/home/runner/.deno/bin:$PATH"
-          eggy link ${{ secrets.NESTAPIKEY }}
+          eggs link ${{ secrets.NESTAPIKEY }}
 
       - name: 📘 Publish to Nest
         run: |
-          eggy publish -Y
+          eggs publish --yes
