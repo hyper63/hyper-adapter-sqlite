@@ -5,11 +5,16 @@
   "description": "Hyper Cache port adapter for sqlite",
   "homepage": "https://github.com/hyper63/hyper-adapter-sqlite",
   "repo": "https://github.com/hyper63/hyper-adapter-sqlite",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "unstable": false,
   "unlisted": false,
-  "files": ["./*"],
-  "ignore": ["./.git*", "./test.db"],
+  "files": [
+    "./*"
+  ],
+  "ignore": [
+    "./.git*",
+    "./test.db"
+  ],
   "checkFormat": false,
   "checkTests": false,
   "checkInstallation": false,
