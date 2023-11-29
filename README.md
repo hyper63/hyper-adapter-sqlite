@@ -8,16 +8,16 @@
 
 ---
 
-## Table of Contents
+<!-- toc -->
 
-- [Getting Started](#getting-started)
 - [Installation](#installation)
 - [Features](#features)
 - [Methods](#methods)
 - [Contributing](#contributing)
+- [Testing](#testing)
 - [License](#license)
 
----
+<!-- tocstop -->
 
 Welcome to the sqlite hyper adapter for the cache port, a cache allows you to store key,value pairs
 where the key is a unique string and the value is a JSON document. Using this simple pattern, you
